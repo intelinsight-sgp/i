@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ROCKETS BUCKET | Pro System v50</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --ios-blue: #007AFF;
+            --ios-bg: #f2f2f7;
+            --ios-green: #34c759;
+            --apple-ease: cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: var(--ios-bg); color: #1d1d1f; height: 100vh; overflow: hidden; }
+
+        /* --- ANIMASI HALUS --- */
+        .smooth-transition { transition: all 0.5s var(--apple-ease); }
+
+        /* --- SLEEP MODE --- */
+        #sleepOverlay { position: fixed; inset: 0; background: black; z-index: 10000; display: none; align-items: center; justify-content: center; cursor: pointer; }
+
+        /* --- MONITOR UI --- */
+        #vDisplay { display: none; height: 100vh; grid-template-rows: 80px 1fr 120px; padding: 20px; gap: 20px; }
+        header { display: flex; justify-content: space-between; align-items: center; padding: 0 30px; background: rgba(255,255,255,0.8); backdrop-filter: blur(20px); border-radius: 20px; }
+        
+        .main-content { display: grid; grid-template-columns: 1fr 1.2fr; gap: 20px; }
+        .glass-card { background: white; border-radius: 35px; padding: 40px; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 10px 30px rgba(0,0,0,0.03); border: 1px solid rgba(255,255,255,0.5); }
+        
+        .num-display { font-family: 'Orbitron'; font-size: 9rem; font-weight: 700; color: #1d1d1f; line-height: 1; margin: 20px 0; }
+        .qr-container { background: #000; width: 100%; height: 100%; border-radius: 35px; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+        .qr-container img { height: 85%; border-radius: 15px; }
+
+        /* --- ZOOM CALL (ESTETIKA IOS) --- */
+        #zoomOverlay { position: fixed; inset: 0; z-index: 9999; display: none; align-items: center; justify-content: center; background: rgba(255,255,255,0.8); backdrop-filter: blur(30px); opacity: 0; transition: 0.5s ease; }
+        .zoom-card { background: white; padding: 80px; border-radius: 50px; text-align: center; box-shadow: 0 50px 100px rgba(0,0,0,0.1); transform: scale(0.7); transition: 0.6s var(--apple-ease); }
+        #zoomOverlay.active { opacity: 1; }
+        #zoomOverlay.active .zoom-card { transform: scale(1); }
+
+        /* --- LOKET TUTUP --- */
+        #closedScreen { position: fixed; inset: 0; background: #FFCC00; z-index: 9500; display: none; flex-direction: column; align-items: center; justify-content: center; }
+
+        /* --- ADMIN CONTROL (UI BERSIH) --- */
+        #vControl { display: none; flex-direction: column; align-items: center; padding: 25px; overflow-y: auto; background: #f2f2f7; }
+        .btn { width: 100%; max-width: 420px; padding: 20px; border-radius: 22px; border: none; font-weight: 700; cursor: pointer; margin-bottom: 12px; font-size: 1rem; transition: 0.3s var(--apple-ease); }
+        .btn:active { transform: scale(0.95); opacity: 0.8; }
+        
+        .prio-box { background: white; width: 100%; max-width: 420px; padding: 25px; border-radius: 30px; margin: 15px 0; box-shadow: 0 10px 25px rgba(0,0,0,0.03); border: 1px solid #e5e5ea; }
+        .input-ios { width: 100%; padding: 15px; border-radius: 15px; border: 2px solid #f2f2f7; background: #f2f2f7; text-align: center; font-size: 1.8rem; font-family: 'Orbitron'; margin-bottom: 15px; outline: none; }
+        .input-ios:focus { border-color: var(--ios-blue); background: white; }
+    </style>
+</head>
+<body>
+
+    <div id="sleepOverlay" onclick="wakeUp()"><h2 style="color:#222; font-family:Orbitron;">SLEEP MODE</h2></div>
+
+    <div id="vHome" style="position:fixed; inset:0; background:#fff; z-index:9000; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:20px;">
+        <h1 style="font-family:Orbitron; margin-bottom:40px;">ROCKETS SYSTEM</h1>
+        <button class="btn" style="background:var(--ios-blue); color:white;" onclick="init('display')">LAYAR MONITOR</button>
+        <button class="btn" style="background:#e5e5ea; color:#1d1d1f;" onclick="init('control')">PANEL ADMIN</button>
+    </div>
+
+    <main id="vDisplay">
+        <header>
+            <h2 style="font-family:Orbitron; color:var(--ios-blue);">ROCKETS</h2>
+            <div id="clock" style="font-family:Orbitron; color:#8e8e93;">00:00:00</div>
+        </header>
+        <section class="main-content">
+            <div class="glass-card">
+                <p style="font-weight:700; color:#8e8e93; letter-spacing:2px;">ANTREAN SEKARANG</p>
+                <div id="mainNum" class="num-display">D-000</div>
+            </div>
+            <div class="qr-container">
+                <img src="ri.png" alt="Scan QR">
+            </div>
+        </section>
+        <div id="zoomOverlay"><div class="zoom-card"><p style="color:var(--ios-blue); font-weight:700; letter-spacing:3px;">SILAHKAN MASUK</p><h1 id="zoomNum" style="font-size:12rem; font-family:Orbitron;">D-000</h1></div></div>
+        <div id="closedScreen"><img src="ci.jpg" style="width:250px;"><h1 style="font-family:Orbitron; margin-top:30px;">LOKET TUTUP</h1></div>
+    </main>
+
+    <main id="vControl">
+        <div class="glass-card" style="width:100%; max-width:420px; padding:20px; margin-bottom:20px; border-radius:22px;">
+            <h3 id="greetAdmin" style="color:var(--ios-blue);">SELAMAT DATANG</h3>
+            <p style="font-size:0.8rem; color:#8e8e93;">Silahkan pilih aksi di bawah</p>
+        </div>
+
+        <button class="btn" style="background:var(--ios-blue); color:white;" onclick="callNext()">PANGGIL BERIKUTNYA</button>
+
+        <div class="prio-box">
+            <p style="font-size:0.75rem; font-weight:700; color:#8e8e93; margin-bottom:12px; text-align:center;">PANGGILAN PRIORITAS</p>
+            <input type="number" id="prioInput" class="input-ios" placeholder="000">
+            <button class="btn" style="background:var(--ios-green); color:white; margin-bottom:0;" onclick="callPrio()">PANGGIL NOMOR INI</button>
+        </div>
+
+        <button id="bgmBtn" class="btn" style="background:#5856d6; color:white;" onclick="toggleBGM()">🎵 MUSIK RINGTONE: OFF</button>
+        <button id="muteBtn" class="btn" style="background:#ff9500; color:white;" onclick="toggleMute()">🔇 MUTE SUARA: OFF</button>
+        <button class="btn" style="background:#ff3b30; color:white;" onclick="stopCall()">⏹ STOP PANGGILAN</button>
+        <button id="closeBtn" class="btn" style="background:#1d1d1f; color:white;" onclick="toggleTutup()">LOKET TUTUP</button>
+    </main>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getDatabase, ref, onValue, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+        const config = { databaseURL: "https://rockets-442e4-default-rtdb.asia-southeast1.firebasedatabase.app/" };
+        const app = initializeApp(config);
+        const db = getDatabase(app);
+        const fbRef = ref(db, 'rockets_final_v50');
+
+        let mode, state, lastActive = Date.now(), isMuted = false, callCount = 0;
+        const bgm = new Audio('https://assets.mixkit.co/music/preview/mixkit-serene-view-443.mp3');
+        bgm.loop = true; bgm.volume = 0.2;
+
+        window.init = (m) => {
+            mode = m;
+            document.getElementById('vHome').style.display = 'none';
+            document.getElementById('v' + m.charAt(0).toUpperCase() + m.slice(1)).style.display = (m==='display'?'grid':'flex');
+            if(m === 'display') setInterval(checkSleep, 10000);
+            if(m === 'control') document.getElementById('greetAdmin').innerText = getGreeting().toUpperCase();
+        };
+
+        function getGreeting() {
+            const h = new Date().getHours();
+            if(h < 11) return "Selamat Pagi";
+            if(h < 15) return "Selamat Siang";
+            if(h < 18) return "Selamat Sore";
+            return "Selamat Malam";
+        }
+
+        function checkSleep() {
+            if(Date.now() - lastActive > 600000) document.getElementById('sleepOverlay').style.display = 'flex';
+        }
+        window.wakeUp = () => { lastActive = Date.now(); document.getElementById('sleepOverlay').style.display = 'none'; };
+
+        onValue(fbRef, (snap) => {
+            state = snap.val() || { cur: 0, isCalling: false, isClosed: false };
+            lastActive = Date.now();
+            
+            if(mode === 'display') {
+                const n = "D-" + String(state.cur).padStart(3, '0');
+                document.getElementById('mainNum').innerText = n;
+                document.getElementById('zoomNum').innerText = n;
+                document.getElementById('closedScreen').style.display = state.isClosed ? 'flex' : 'none';
+
+                if(state.isCalling && !state.isClosed) {
+                    const z = document.getElementById('zoomOverlay');
+                    z.style.display = 'flex';
+                    setTimeout(() => z.classList.add('active'), 50);
+                    playVoice(state.cur);
+                } else {
+                    const z = document.getElementById('zoomOverlay');
+                    z.classList.remove('active');
+                    setTimeout(() => z.style.display = 'none', 500);
+                    window.speechSynthesis.cancel();
+                }
+            }
+            if(mode === 'control') {
+                document.getElementById('closeBtn').innerText = state.isClosed ? "BUKA LOKET" : "LOKET TUTUP";
+                document.getElementById('closeBtn').style.background = state.isClosed ? "#34c759" : "#1d1d1f";
+            }
+        });
+
+        window.callNext = () => update(fbRef, { cur: (state.cur || 0) + 1, isCalling: true });
+        window.callPrio = () => {
+            const val = document.getElementById('prioInput').value;
+            if(val) update(fbRef, { cur: parseInt(val), isCalling: true });
+        };
+        window.stopCall = () => update(fbRef, { isCalling: false });
+        window.toggleMute = () => {
+            isMuted = !isMuted;
+            document.getElementById('muteBtn').innerText = "🔇 MUTE SUARA: " + (isMuted ? "ON" : "OFF");
+        };
+        window.toggleBGM = () => {
+            if(bgm.paused) { bgm.play(); document.getElementById('bgmBtn').innerText = "🎵 MUSIK RINGTONE: ON"; }
+            else { bgm.pause(); document.getElementById('bgmBtn').innerText = "🎵 MUSIK RINGTONE: OFF"; }
+        };
+        window.toggleTutup = () => update(fbRef, { isClosed: !state.isClosed, isCalling: false });
+
+        function playVoice(n) {
+            if(isMuted) return;
+            window.speechSynthesis.cancel();
+            callCount = 0;
+            const msg = new SpeechSynthesisUtterance("Nomor antrean D " + n + ". Silahkan masuk.");
+            msg.lang = 'id-ID';
+            msg.onend = () => {
+                callCount++;
+                if(callCount < 5 && state.isCalling) {
+                    setTimeout(() => { if(state.isCalling) window.speechSynthesis.speak(msg); }, 2000);
+                } else if(callCount >= 5) {
+                    update(fbRef, { isCalling: false });
+                }
+            };
+            window.speechSynthesis.speak(msg);
+        }
+    </script>
+</body>
+</html>
